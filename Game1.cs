@@ -16,6 +16,11 @@ public class Game1 : Game
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
     private Texture2D _pixel;
+    private MouseState _previousMouse;
+    private bool _isDragging;
+    private Vector2 _dragStart;
+    private const float Zoom = 80f;
+    private const float VelocityScale = 0.1f;
 
     public Game1()
     {
@@ -82,6 +87,29 @@ public class Game1 : Game
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
+        var mouse = Mouse.GetState();
+        var screenCenter = new Vector2(
+            GraphicsDevice.Viewport.Width / 2f,
+            GraphicsDevice.Viewport.Height / 2f
+        );
+
+        if (mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released)
+        {
+            _isDragging = true;
+            _dragStart = new Vector2(mouse.X, mouse.Y);
+        }
+
+        if (mouse.LeftButton == ButtonState.Released && _previousMouse.LeftButton == ButtonState.Pressed && _isDragging)
+        {
+            _isDragging = false;
+            var dragEnd = new Vector2(mouse.X, mouse.Y);
+            var worldPos = (_dragStart - screenCenter) / Zoom;
+            var velocity = (_dragStart - dragEnd) / Zoom * VelocityScale;
+            _bodies.Add(new Body(worldPos, velocity, 1f, 0.05f));
+        }
+
+        _previousMouse = mouse;
+
         const float dt = TimeStep / SubSteps;
 
         for (var i = 0; i < SubSteps; i++)
@@ -101,11 +129,9 @@ public class Game1 : Game
             GraphicsDevice.Viewport.Height / 2f
         );
 
-        const float zoom = 80f;
-
         foreach (var body in _bodies)
         {
-            var screenPos = body.Position * zoom + screenCenter;
+            var screenPos = body.Position * Zoom + screenCenter;
             var size = (2f + MathF.Log(body.Mass + 1f) * 2f) / 64f;
 
             _spriteBatch.Draw(
@@ -121,8 +147,35 @@ public class Game1 : Game
             );
         }
 
+        if (_isDragging)
+        {
+            var mouse = Mouse.GetState();
+            var from = _dragStart;
+            var to = new Vector2(mouse.X, mouse.Y);
+            DrawLine(from, to, Color.Gray);
+        }
+
         _spriteBatch.End();
 
         base.Draw(gameTime);
+    }
+
+    private void DrawLine(Vector2 from, Vector2 to, Color color)
+    {
+        var diff = to - from;
+        var length = diff.Length();
+        if (length < 1f) return;
+        var angle = MathF.Atan2(diff.Y, diff.X);
+        _spriteBatch.Draw(
+            _pixel,
+            from,
+            null,
+            color,
+            angle,
+            new Vector2(0, 32f),
+            new Vector2(length / 64f, 1f / 64f),
+            SpriteEffects.None,
+            0f
+        );
     }
 }
