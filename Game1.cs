@@ -59,9 +59,22 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // Example: creating a 1x1 white pixel texture
-        _pixel = new Texture2D(GraphicsDevice, 1, 1);
-        _pixel.SetData([Color.White]);
+        const int diameter = 64;
+        const float radius = diameter / 2f;
+        _pixel = new Texture2D(GraphicsDevice, diameter, diameter);
+        var data = new Color[diameter * diameter];
+        for (var y = 0; y < diameter; y++)
+        {
+            for (var x = 0; x < diameter; x++)
+            {
+                var dx = x - radius + 0.5f;
+                var dy = y - radius + 0.5f;
+                data[y * diameter + x] = dx * dx + dy * dy <= radius * radius
+                    ? Color.White
+                    : Color.Transparent;
+            }
+        }
+        _pixel.SetData(data);
     }
 
     protected override void Update(GameTime gameTime)
@@ -90,16 +103,19 @@ public class Game1 : Game
 
         const float zoom = 80f;
 
-        foreach (var screenPos in _bodies.Select(body => body.Position * zoom + screenCenter))
+        foreach (var body in _bodies)
         {
+            var screenPos = body.Position * zoom + screenCenter;
+            var size = (2f + MathF.Log(body.Mass + 1f) * 2f) / 64f;
+
             _spriteBatch.Draw(
                 _pixel,
                 screenPos,
                 null,
                 Color.White,
                 0f,
-                Vector2.Zero,
-                2f,
+                new Vector2(0.5f, 0.5f),
+                size,
                 SpriteEffects.None,
                 0f
             );
