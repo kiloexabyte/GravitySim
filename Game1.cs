@@ -115,6 +115,9 @@ public class Game1 : Game
         for (var i = 0; i < SubSteps; i++)
             Physics.Step(_bodies, dt);
 
+        foreach (var body in _bodies)
+            body.RecordTrail();
+
         base.Update(gameTime);
     }
     
@@ -131,6 +134,15 @@ public class Game1 : Game
 
         foreach (var body in _bodies)
         {
+            var trailArray = body.Trail.ToArray();
+            for (var i = 1; i < trailArray.Length; i++)
+            {
+                var alpha = (float)i / trailArray.Length * 0.5f;
+                var from = trailArray[i - 1] * Zoom + screenCenter;
+                var to = trailArray[i] * Zoom + screenCenter;
+                DrawLine(from, to, Color.White * alpha);
+            }
+
             var screenPos = body.Position * Zoom + screenCenter;
             var size = (2f + MathF.Log(body.Mass + 1f) * 2f) / 64f;
 
@@ -140,7 +152,7 @@ public class Game1 : Game
                 null,
                 Color.White,
                 0f,
-                new Vector2(0.5f, 0.5f),
+                new Vector2(32f, 32f),
                 size,
                 SpriteEffects.None,
                 0f
