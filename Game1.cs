@@ -52,7 +52,7 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        var result = _inputHandler.Update(GraphicsDevice.Viewport, _bodies, _camera, VelocityScale, ResetButton);
+        var result = _inputHandler.Update(GraphicsDevice.Viewport, _bodies, _camera, VelocityScale, ResetButton, IsActive);
 
         if (result.ShouldExit)
             Exit();
