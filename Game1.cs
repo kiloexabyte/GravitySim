@@ -25,11 +25,14 @@ public class Game1 : Game
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
     private Texture2D _pixel;
+    private Texture2D _rectPixel;
+    private SpriteFont _font;
     private MouseState _previousMouse;
     private bool _isDragging;
     private Vector2 _dragStart;
     private const float Zoom = 80f;
     private const float VelocityScale = 0.1f;
+    private static readonly Rectangle ResetButton = new(10, 10, 80, 32);
 
     public Game1()
     {
@@ -68,12 +71,21 @@ public class Game1 : Game
             }
         }
         _pixel.SetData(data);
+
+        _rectPixel = new Texture2D(GraphicsDevice, 1, 1);
+        _rectPixel.SetData(new[] { Color.White });
+
+        _font = Content.Load<SpriteFont>("DefaultFont");
     }
 
     protected override void Update(GameTime gameTime)
     {
-        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+        var keyboard = Keyboard.GetState();
+        if (keyboard.IsKeyDown(Keys.Escape))
             Exit();
+
+        if (keyboard.IsKeyDown(Keys.R))
+            _bodies.Clear();
 
         var mouse = Mouse.GetState();
         var screenCenter = new Vector2(
@@ -81,7 +93,16 @@ public class Game1 : Game
             GraphicsDevice.Viewport.Height / 2f
         );
 
+        var clickedReset = false;
         if (mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
+            && ResetButton.Contains(mouse.X, mouse.Y))
+        {
+            _bodies.Clear();
+            clickedReset = true;
+        }
+
+        if (!clickedReset
+            && mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
             && mouse.X >= 0 && mouse.X < GraphicsDevice.Viewport.Width
             && mouse.Y >= 0 && mouse.Y < GraphicsDevice.Viewport.Height)
         {
@@ -156,6 +177,14 @@ public class Game1 : Game
             var to = new Vector2(mouse.X, mouse.Y);
             DrawLine(from, to, Color.Gray);
         }
+
+        _spriteBatch.Draw(_rectPixel, ResetButton, Color.DarkSlateGray);
+        var textSize = _font.MeasureString("Reset");
+        var textPos = new Vector2(
+            ResetButton.X + (ResetButton.Width - textSize.X) / 2f,
+            ResetButton.Y + (ResetButton.Height - textSize.Y) / 2f
+        );
+        _spriteBatch.DrawString(_font, "Reset", textPos, Color.White);
 
         _spriteBatch.End();
 
