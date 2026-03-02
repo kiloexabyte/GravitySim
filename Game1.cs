@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using Vector2 = System.Numerics.Vector2;
 
 namespace GravitySim;
@@ -11,7 +9,6 @@ namespace GravitySim;
 public class Game1 : Game
 {
     private readonly GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
     private readonly List<Body> _bodies =
     [
         new(Vector2.Zero, Vector2.Zero, 1000f, 0.2f),
@@ -24,18 +21,12 @@ public class Game1 : Game
     ];
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
-    private Texture2D _pixel;
-    private Texture2D _rectPixel;
-    private SpriteFont _font;
-    private MouseState _previousMouse;
-    private bool _isDragging;
-    private Vector2 _dragStart;
     private const float Zoom = 80f;
     private const float VelocityScale = 0.3f;
     private static readonly Rectangle ResetButton = new(10, 10, 80, 32);
-    private float _spawnMass = 1f;
-    private string _massInput = "1";
-    private KeyboardState _previousKeyboard;
+
+    private readonly InputHandler _inputHandler = new();
+    private readonly Renderer _renderer = new();
 
     public Game1()
     {
@@ -56,100 +47,19 @@ public class Game1 : Game
 
     protected override void LoadContent()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        const int diameter = 64;
-        const float radius = diameter / 2f;
-        _pixel = new Texture2D(GraphicsDevice, diameter, diameter);
-        var data = new Color[diameter * diameter];
-        for (var y = 0; y < diameter; y++)
-        {
-            for (var x = 0; x < diameter; x++)
-            {
-                var dx = x - radius + 0.5f;
-                var dy = y - radius + 0.5f;
-                data[y * diameter + x] = dx * dx + dy * dy <= radius * radius
-                    ? Color.White
-                    : Color.Transparent;
-            }
-        }
-        _pixel.SetData(data);
-
-        _rectPixel = new Texture2D(GraphicsDevice, 1, 1);
-        _rectPixel.SetData(new[] { Color.White });
-
-        _font = Content.Load<SpriteFont>("DefaultFont");
+        _renderer.LoadContent(GraphicsDevice, Content);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        var keyboard = Keyboard.GetState();
-        if (keyboard.IsKeyDown(Keys.Escape))
+        var result = _inputHandler.Update(GraphicsDevice.Viewport, _bodies, Zoom, VelocityScale, ResetButton);
+
+        if (result.ShouldExit)
             Exit();
-
-        if (keyboard.IsKeyDown(Keys.R))
+        if (result.ShouldReset)
             _bodies.Clear();
-
-        for (var k = Keys.D0; k <= Keys.D9; k++)
-        {
-            if (keyboard.IsKeyDown(k) && !_previousKeyboard.IsKeyDown(k))
-                _massInput += (char)('0' + (k - Keys.D0));
-        }
-        for (var k = Keys.NumPad0; k <= Keys.NumPad9; k++)
-        {
-            if (keyboard.IsKeyDown(k) && !_previousKeyboard.IsKeyDown(k))
-                _massInput += (char)('0' + (k - Keys.NumPad0));
-        }
-        if (keyboard.IsKeyDown(Keys.OemPeriod) && !_previousKeyboard.IsKeyDown(Keys.OemPeriod)
-            && !_massInput.Contains('.'))
-            _massInput += '.';
-        if (keyboard.IsKeyDown(Keys.Decimal) && !_previousKeyboard.IsKeyDown(Keys.Decimal)
-            && !_massInput.Contains('.'))
-            _massInput += '.';
-        if (keyboard.IsKeyDown(Keys.Back) && !_previousKeyboard.IsKeyDown(Keys.Back) && _massInput.Length > 0)
-            _massInput = _massInput[..^1];
-
-        if (float.TryParse(_massInput, out var parsed) && parsed > 0)
-            _spawnMass = parsed;
-
-        _previousKeyboard = keyboard;
-
-        var mouse = Mouse.GetState();
-        var screenCenter = new Vector2(
-            GraphicsDevice.Viewport.Width / 2f,
-            GraphicsDevice.Viewport.Height / 2f
-        );
-
-        var clickedReset = false;
-        if (mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
-            && ResetButton.Contains(mouse.X, mouse.Y))
-        {
-            _bodies.Clear();
-            clickedReset = true;
-        }
-
-        if (!clickedReset
-            && mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
-            && mouse.X >= 0 && mouse.X < GraphicsDevice.Viewport.Width
-            && mouse.Y >= 0 && mouse.Y < GraphicsDevice.Viewport.Height)
-        {
-            _isDragging = true;
-            _dragStart = new Vector2(mouse.X, mouse.Y);
-        }
-
-        if (mouse.LeftButton == ButtonState.Released && _previousMouse.LeftButton == ButtonState.Pressed && _isDragging)
-        {
-            _isDragging = false;
-            var dragEnd = new Vector2(mouse.X, mouse.Y);
-            var worldPos = (_dragStart - screenCenter) / Zoom;
-            var velocity = (_dragStart - dragEnd) / Zoom * VelocityScale;
-            _bodies.Add(new Body(worldPos, velocity, _spawnMass, 0.05f));
-        }
-
-        _previousMouse = mouse;
 
         const float dt = TimeStep / SubSteps;
-
         for (var i = 0; i < SubSteps; i++)
             Physics.Step(_bodies, dt);
 
@@ -158,104 +68,10 @@ public class Game1 : Game
 
         base.Update(gameTime);
     }
-    
+
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.Black);
-
-        _spriteBatch.Begin();
-
-        Vector2 screenCenter = new(
-            GraphicsDevice.Viewport.Width / 2f,
-            GraphicsDevice.Viewport.Height / 2f
-        );
-
-        foreach (var body in _bodies)
-        {
-            var trailArray = body.Trail.ToArray();
-            for (var i = 1; i < trailArray.Length; i++)
-            {
-                var alpha = (float)i / trailArray.Length * 0.5f;
-                var from = trailArray[i - 1] * Zoom + screenCenter;
-                var to = trailArray[i] * Zoom + screenCenter;
-                DrawLine(from, to, Color.White * alpha);
-            }
-
-            var screenPos = body.Position * Zoom + screenCenter;
-            var size = (2f + MathF.Log(body.Mass + 1f) * 2f) / 64f;
-
-            _spriteBatch.Draw(
-                _pixel,
-                screenPos,
-                null,
-                Color.White,
-                0f,
-                new Vector2(32f, 32f),
-                size,
-                SpriteEffects.None,
-                0f
-            );
-        }
-
-        if (_isDragging)
-        {
-            var mouse = Mouse.GetState();
-            var from = _dragStart;
-            var to = new Vector2(mouse.X, mouse.Y);
-            DrawLine(from, to, Color.Gray);
-        }
-
-        _spriteBatch.Draw(_rectPixel, ResetButton, Color.DarkSlateGray);
-        var textSize = _font.MeasureString("Reset");
-        var textPos = new Vector2(
-            ResetButton.X + (ResetButton.Width - textSize.X) / 2f,
-            ResetButton.Y + (ResetButton.Height - textSize.Y) / 2f
-        );
-        _spriteBatch.DrawString(_font, "Reset", textPos, Color.White);
-
-        var massLabel = $"Mass: {_massInput}";
-        var massTextSize = _font.MeasureString(massLabel);
-        var massRect = new Rectangle(10, ResetButton.Bottom + 6,
-            (int)massTextSize.X + 16, (int)massTextSize.Y + 8);
-        _spriteBatch.Draw(_rectPixel, massRect, Color.DarkSlateGray);
-        var massTextPos = new Vector2(
-            massRect.X + (massRect.Width - massTextSize.X) / 2f,
-            massRect.Y + (massRect.Height - massTextSize.Y) / 2f
-        );
-        _spriteBatch.DrawString(_font, massLabel, massTextPos, Color.White);
-
-        var bodyLabel = $"Bodies: {_bodies.Count}";
-        var bodyTextSize = _font.MeasureString(bodyLabel);
-        var bodyRect = new Rectangle(10, massRect.Bottom + 6,
-            (int)bodyTextSize.X + 16, (int)bodyTextSize.Y + 8);
-        _spriteBatch.Draw(_rectPixel, bodyRect, Color.DarkSlateGray);
-        var bodyTextPos = new Vector2(
-            bodyRect.X + (bodyRect.Width - bodyTextSize.X) / 2f,
-            bodyRect.Y + (bodyRect.Height - bodyTextSize.Y) / 2f
-        );
-        _spriteBatch.DrawString(_font, bodyLabel, bodyTextPos, Color.White);
-
-        _spriteBatch.End();
-
+        _renderer.Draw(GraphicsDevice, _bodies, _inputHandler, Zoom, ResetButton);
         base.Draw(gameTime);
-    }
-
-    private void DrawLine(Vector2 from, Vector2 to, Color color)
-    {
-        var diff = to - from;
-        var length = diff.Length();
-        if (length < 1f) return;
-        var angle = MathF.Atan2(diff.Y, diff.X);
-        _spriteBatch.Draw(
-            _pixel,
-            from,
-            null,
-            color,
-            angle,
-            new Vector2(0, 32f),
-            new Vector2(length / 64f, 1f / 64f),
-            SpriteEffects.None,
-            0f
-        );
     }
 }
