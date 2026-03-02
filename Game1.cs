@@ -12,7 +12,12 @@ public class Game1 : Game
 {
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private readonly List<Body> _bodies = [];
+    private readonly List<Body> _bodies =
+    [
+        new(Vector2.Zero, Vector2.Zero, 1000f, 0.2f),
+        new(new Vector2(5, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 5f)), 1f, 0.05f),
+        new(new Vector2(3, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 5f)), 1f, 0.05f),
+    ];
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
     private Texture2D _pixel;
@@ -31,31 +36,9 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        // Set window size in pixels
-        _graphics.PreferredBackBufferWidth = 1920;  // width in pixels
-        _graphics.PreferredBackBufferHeight = 1080;  // height in pixels
+        _graphics.PreferredBackBufferWidth = 1920;
+        _graphics.PreferredBackBufferHeight = 1080;
         _graphics.ApplyChanges();
-        
-        _bodies.Add(new Body(
-            position: Vector2.Zero,
-            velocity: Vector2.Zero,
-            mass: 1000f,
-            radius: 0.2f
-        ));
-
-        _bodies.Add(new Body(
-            position: new Vector2(5, 0),
-            velocity: new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 5f)),
-            mass: 1f,
-            radius: 0.05f
-        ));
-        
-        _bodies.Add(new Body(
-            position: new Vector2(3, 0),
-            velocity: new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 5f)),
-            mass: 1f,
-            radius: 0.05f
-        ));
 
         base.Initialize();
     }
@@ -93,7 +76,9 @@ public class Game1 : Game
             GraphicsDevice.Viewport.Height / 2f
         );
 
-        if (mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released)
+        if (mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
+            && mouse.X >= 0 && mouse.X < GraphicsDevice.Viewport.Width
+            && mouse.Y >= 0 && mouse.Y < GraphicsDevice.Viewport.Height)
         {
             _isDragging = true;
             _dragStart = new Vector2(mouse.X, mouse.Y);
