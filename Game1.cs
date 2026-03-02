@@ -15,8 +15,12 @@ public class Game1 : Game
     private readonly List<Body> _bodies =
     [
         new(Vector2.Zero, Vector2.Zero, 1000f, 0.2f),
-        new(new Vector2(5, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 5f)), 1f, 0.05f),
-        new(new Vector2(3, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 5f)), 1f, 0.05f),
+        new(new Vector2(1.5f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 1.5f)), 0.5f, 0.05f),
+        new(new Vector2(0, 2.5f), new Vector2(-MathF.Sqrt(Physics.G * 1000f / 2.5f), 0), 1f, 0.05f),
+        new(new Vector2(-4f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 4f)), 1.5f, 0.05f),
+        new(new Vector2(0, -5.5f), new Vector2(MathF.Sqrt(Physics.G * 1000f / 5.5f), 0), 0.8f, 0.05f),
+        new(new Vector2(8f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 8f)), 10f, 0.05f),
+        new(new Vector2(-10.5f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 10.5f)), 5f, 0.05f),
     ];
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
@@ -36,8 +40,9 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        _graphics.PreferredBackBufferWidth = 1920;
-        _graphics.PreferredBackBufferHeight = 1080;
+        _graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        _graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+        Window.AllowUserResizing = true;
         _graphics.ApplyChanges();
 
         base.Initialize();
