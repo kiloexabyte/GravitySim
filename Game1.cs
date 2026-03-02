@@ -224,6 +224,17 @@ public class Game1 : Game
         );
         _spriteBatch.DrawString(_font, massLabel, massTextPos, Color.White);
 
+        var bodyLabel = $"Bodies: {_bodies.Count}";
+        var bodyTextSize = _font.MeasureString(bodyLabel);
+        var bodyRect = new Rectangle(10, massRect.Bottom + 6,
+            (int)bodyTextSize.X + 16, (int)bodyTextSize.Y + 8);
+        _spriteBatch.Draw(_rectPixel, bodyRect, Color.DarkSlateGray);
+        var bodyTextPos = new Vector2(
+            bodyRect.X + (bodyRect.Width - bodyTextSize.X) / 2f,
+            bodyRect.Y + (bodyRect.Height - bodyTextSize.Y) / 2f
+        );
+        _spriteBatch.DrawString(_font, bodyLabel, bodyTextPos, Color.White);
+
         _spriteBatch.End();
 
         base.Draw(gameTime);
