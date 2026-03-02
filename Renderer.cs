@@ -87,6 +87,19 @@ public class Renderer
             var from = input.DragStart;
             var to = new Vector2(mouse.X, mouse.Y);
             DrawLine(from, to, Color.Gray);
+
+            var dir = from - to;
+            var len = dir.Length();
+            if (len > 10f)
+            {
+                var norm = dir / len;
+                var perp = new Vector2(-norm.Y, norm.X);
+                const float headLen = 12f;
+                const float headWidth = 6f;
+                var tip = from;
+                DrawLine(tip, tip - norm * headLen + perp * headWidth, Color.Gray);
+                DrawLine(tip, tip - norm * headLen - perp * headWidth, Color.Gray);
+            }
         }
 
         _spriteBatch.Draw(_rectPixel, resetButton, Color.DarkSlateGray);
