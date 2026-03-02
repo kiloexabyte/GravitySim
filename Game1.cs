@@ -12,14 +12,18 @@ public class Game1 : Game
     private readonly List<Body> _bodies =
     [
         new(Vector2.Zero, Vector2.Zero, 1000f, 0.2f),
-        new(new Vector2(1.5f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 1.5f)), 0.5f, 0.05f),
-        new(new Vector2(0, 2.5f), new Vector2(-MathF.Sqrt(Physics.G * 1000f / 2.5f), 0), 1f, 0.05f),
-        new(new Vector2(-4f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 4f)), 1.5f, 0.05f),
-        new(new Vector2(0, -5.5f), new Vector2(MathF.Sqrt(Physics.G * 1000f / 5.5f), 0), 0.8f, 0.05f),
-        new(new Vector2(8f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 8f)), 10f, 0.05f),
-        new(new Vector2(8.3f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 8f) + MathF.Sqrt(Physics.G * 10f / 0.3f)), 0.05f, 0.02f),
-        new(new Vector2(-10.5f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 10.5f)), 5f, 0.05f),
-        new(new Vector2(-10.5f, 0.25f), new Vector2(-MathF.Sqrt(Physics.G * 5f / 0.25f) + 0, -MathF.Sqrt(Physics.G * 1000f / 10.5f)), 0.04f, 0.02f),
+        new(new Vector2(3f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 3f)), 0.5f, 0.05f),
+        new(new Vector2(0, 6f), new Vector2(-MathF.Sqrt(Physics.G * 1000f / 6f), 0), 1f, 0.05f),
+        new(new Vector2(-10f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 10f)), 1.5f, 0.05f),
+        new(new Vector2(0, -15f), new Vector2(MathF.Sqrt(Physics.G * 1000f / 15f), 0), 0.8f, 0.05f),
+        new(new Vector2(21f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 21f)), 10f, 0.05f),
+        new(new Vector2(21.4f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 21f) + MathF.Sqrt(Physics.G * 10f / 0.4f)), 0.05f, 0.02f),
+        new(new Vector2(-28f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 28f)), 5f, 0.05f),
+        new(new Vector2(-28f, 0.3f), new Vector2(-MathF.Sqrt(Physics.G * 5f / 0.3f), -MathF.Sqrt(Physics.G * 1000f / 28f)), 0.04f, 0.02f),
+        new(new Vector2(0, 36f), new Vector2(-MathF.Sqrt(Physics.G * 1000f / 36f), 0), 3f, 0.05f),
+        new(new Vector2(-45f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 45f)), 0.3f, 0.03f),
+        new(new Vector2(55f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 55f)), 8f, 0.05f),
+        new(new Vector2(0, -66f), new Vector2(MathF.Sqrt(Physics.G * 1000f / 66f), 0), 0.6f, 0.03f),
     ];
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
