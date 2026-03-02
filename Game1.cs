@@ -31,8 +31,11 @@ public class Game1 : Game
     private bool _isDragging;
     private Vector2 _dragStart;
     private const float Zoom = 80f;
-    private const float VelocityScale = 0.1f;
+    private const float VelocityScale = 0.3f;
     private static readonly Rectangle ResetButton = new(10, 10, 80, 32);
+    private float _spawnMass = 1f;
+    private string _massInput = "1";
+    private KeyboardState _previousKeyboard;
 
     public Game1()
     {
@@ -87,6 +90,30 @@ public class Game1 : Game
         if (keyboard.IsKeyDown(Keys.R))
             _bodies.Clear();
 
+        for (var k = Keys.D0; k <= Keys.D9; k++)
+        {
+            if (keyboard.IsKeyDown(k) && !_previousKeyboard.IsKeyDown(k))
+                _massInput += (char)('0' + (k - Keys.D0));
+        }
+        for (var k = Keys.NumPad0; k <= Keys.NumPad9; k++)
+        {
+            if (keyboard.IsKeyDown(k) && !_previousKeyboard.IsKeyDown(k))
+                _massInput += (char)('0' + (k - Keys.NumPad0));
+        }
+        if (keyboard.IsKeyDown(Keys.OemPeriod) && !_previousKeyboard.IsKeyDown(Keys.OemPeriod)
+            && !_massInput.Contains('.'))
+            _massInput += '.';
+        if (keyboard.IsKeyDown(Keys.Decimal) && !_previousKeyboard.IsKeyDown(Keys.Decimal)
+            && !_massInput.Contains('.'))
+            _massInput += '.';
+        if (keyboard.IsKeyDown(Keys.Back) && !_previousKeyboard.IsKeyDown(Keys.Back) && _massInput.Length > 0)
+            _massInput = _massInput[..^1];
+
+        if (float.TryParse(_massInput, out var parsed) && parsed > 0)
+            _spawnMass = parsed;
+
+        _previousKeyboard = keyboard;
+
         var mouse = Mouse.GetState();
         var screenCenter = new Vector2(
             GraphicsDevice.Viewport.Width / 2f,
@@ -116,7 +143,7 @@ public class Game1 : Game
             var dragEnd = new Vector2(mouse.X, mouse.Y);
             var worldPos = (_dragStart - screenCenter) / Zoom;
             var velocity = (_dragStart - dragEnd) / Zoom * VelocityScale;
-            _bodies.Add(new Body(worldPos, velocity, 1f, 0.05f));
+            _bodies.Add(new Body(worldPos, velocity, _spawnMass, 0.05f));
         }
 
         _previousMouse = mouse;
@@ -185,6 +212,17 @@ public class Game1 : Game
             ResetButton.Y + (ResetButton.Height - textSize.Y) / 2f
         );
         _spriteBatch.DrawString(_font, "Reset", textPos, Color.White);
+
+        var massLabel = $"Mass: {_massInput}";
+        var massTextSize = _font.MeasureString(massLabel);
+        var massRect = new Rectangle(10, ResetButton.Bottom + 6,
+            (int)massTextSize.X + 16, (int)massTextSize.Y + 8);
+        _spriteBatch.Draw(_rectPixel, massRect, Color.DarkSlateGray);
+        var massTextPos = new Vector2(
+            massRect.X + (massRect.Width - massTextSize.X) / 2f,
+            massRect.Y + (massRect.Height - massTextSize.Y) / 2f
+        );
+        _spriteBatch.DrawString(_font, massLabel, massTextPos, Color.White);
 
         _spriteBatch.End();
 
