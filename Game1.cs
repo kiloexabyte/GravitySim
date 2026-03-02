@@ -17,6 +17,7 @@ public class Game1 : Game
         new(new Vector2(-4f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 4f)), 1.5f, 0.05f),
         new(new Vector2(0, -5.5f), new Vector2(MathF.Sqrt(Physics.G * 1000f / 5.5f), 0), 0.8f, 0.05f),
         new(new Vector2(8f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 8f)), 10f, 0.05f),
+        new(new Vector2(8.3f, 0), new Vector2(0, MathF.Sqrt(Physics.G * 1000f / 8f) + MathF.Sqrt(Physics.G * 10f / 0.3f)), 0.05f, 0.02f),
         new(new Vector2(-10.5f, 0), new Vector2(0, -MathF.Sqrt(Physics.G * 1000f / 10.5f)), 5f, 0.05f),
     ];
     private const float TimeStep = 0.01f;
