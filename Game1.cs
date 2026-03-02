@@ -57,7 +57,11 @@ public class Game1 : Game
         if (result.ShouldExit)
             Exit();
         if (result.ShouldReset)
+        {
             _bodies.Clear();
+            _camera.Position = Vector2.Zero;
+            _camera.Zoom = 80f;
+        }
 
         const float dt = TimeStep / SubSteps;
         for (var i = 0; i < SubSteps; i++)
