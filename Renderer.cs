@@ -15,6 +15,15 @@ public class Renderer
     private Texture2D _rectPixel;
     private SpriteFont _font;
 
+    private const int StarCount = 300;
+    private const int StarLayers = 3;
+    private static readonly float[] LayerParallax = [0.02f, 0.05f, 0.1f];
+    private static readonly float[] LayerBrightness = [0.15f, 0.3f, 0.5f];
+    private static readonly float[] LayerSize = [1f, 1.5f, 2f];
+    private Vector2[][] _starPositions;
+    private int _starFieldWidth;
+    private int _starFieldHeight;
+
     public void LoadContent(GraphicsDevice graphicsDevice, ContentManager content)
     {
         _spriteBatch = new SpriteBatch(graphicsDevice);
@@ -40,6 +49,19 @@ public class Renderer
         _rectPixel.SetData(new[] { Color.White });
 
         _font = content.Load<SpriteFont>("DefaultFont");
+
+        _starFieldWidth = graphicsDevice.Viewport.Width;
+        _starFieldHeight = graphicsDevice.Viewport.Height;
+        var rng = new Random(42);
+        _starPositions = new Vector2[StarLayers][];
+        for (var layer = 0; layer < StarLayers; layer++)
+        {
+            _starPositions[layer] = new Vector2[StarCount];
+            for (var i = 0; i < StarCount; i++)
+                _starPositions[layer][i] = new Vector2(
+                    (float)(rng.NextDouble() * _starFieldWidth),
+                    (float)(rng.NextDouble() * _starFieldHeight));
+        }
     }
 
     public void Draw(GraphicsDevice graphicsDevice, List<Body> bodies, InputHandler input,
@@ -53,6 +75,22 @@ public class Renderer
             graphicsDevice.Viewport.Width / 2f,
             graphicsDevice.Viewport.Height / 2f
         );
+
+        // Parallax starfield
+        for (var layer = 0; layer < StarLayers; layer++)
+        {
+            var offsetX = camera.Position.X * camera.Zoom * LayerParallax[layer];
+            var offsetY = camera.Position.Y * camera.Zoom * LayerParallax[layer];
+            var color = Color.White * LayerBrightness[layer];
+            var size = LayerSize[layer];
+
+            foreach (var star in _starPositions[layer])
+            {
+                var sx = ((star.X - offsetX) % _starFieldWidth + _starFieldWidth) % _starFieldWidth;
+                var sy = ((star.Y - offsetY) % _starFieldHeight + _starFieldHeight) % _starFieldHeight;
+                _spriteBatch.Draw(_rectPixel, new Rectangle((int)sx, (int)sy, (int)size, (int)size), color);
+            }
+        }
 
         foreach (var body in bodies)
         {
