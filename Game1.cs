@@ -21,7 +21,7 @@ public class Game1 : Game
     ];
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
-    private const float VelocityScale = 0.3f;
+    private const float VelocityScale = 1.5f;
     private readonly Camera _camera = new();
     private static readonly Rectangle ResetButton = new(10, 10, 80, 32);
 
