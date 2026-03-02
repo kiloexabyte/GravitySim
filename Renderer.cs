@@ -65,7 +65,7 @@ public class Renderer
     }
 
     public void Draw(GraphicsDevice graphicsDevice, List<Body> bodies, InputHandler input,
-        Camera camera, Rectangle resetButton)
+        Camera camera, Rectangle resetButton, float velocityScale)
     {
         graphicsDevice.Clear(Color.Black);
 
@@ -137,6 +137,20 @@ public class Renderer
                 var tip = from;
                 DrawLine(tip, tip - norm * headLen + perp * headWidth, Color.Gray);
                 DrawLine(tip, tip - norm * headLen - perp * headWidth, Color.Gray);
+            }
+
+            // Orbit preview
+            var worldPos = camera.ScreenToWorld(from, screenCenter);
+            var dragEndWorld = camera.ScreenToWorld(to, screenCenter);
+            var velocity = (worldPos - dragEndWorld) * velocityScale;
+            var path = Physics.PredictTrajectory(bodies, worldPos, velocity, 300, 0.01f);
+            var prevScreen = camera.WorldToScreen(worldPos, screenCenter);
+            for (var i = 0; i < path.Length; i++)
+            {
+                var curScreen = camera.WorldToScreen(path[i], screenCenter);
+                var alpha = (1f - (float)i / path.Length) * 0.5f;
+                DrawLine(prevScreen, curScreen, Color.Cyan * alpha);
+                prevScreen = curScreen;
             }
         }
 

@@ -9,6 +9,32 @@ public static class Physics
     public const float G = 1.0f;
     public const float Softening = 0.1f;
 
+    public static Vector2[] PredictTrajectory(List<Body> bodies, Vector2 position, Vector2 velocity, int steps, float dt)
+    {
+        var path = new Vector2[steps];
+        var pos = position;
+        var vel = velocity;
+
+        for (var s = 0; s < steps; s++)
+        {
+            var acc = Vector2.Zero;
+            foreach (var b in bodies)
+            {
+                var r = b.Position - pos;
+                var distSq = r.LengthSquared() + Softening * Softening;
+                var invDist = 1.0f / MathF.Sqrt(distSq);
+                var invDist3 = invDist * invDist * invDist;
+                acc += G * b.Mass * r * invDist3;
+            }
+
+            vel += acc * dt;
+            pos += vel * dt;
+            path[s] = pos;
+        }
+
+        return path;
+    }
+
     public static void Step(List<Body> bodies, float dt)
     {
         // Reset accelerations

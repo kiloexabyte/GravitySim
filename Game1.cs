@@ -75,7 +75,7 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        _renderer.Draw(GraphicsDevice, _bodies, _inputHandler, _camera, ResetButton);
+        _renderer.Draw(GraphicsDevice, _bodies, _inputHandler, _camera, ResetButton, VelocityScale);
         base.Draw(gameTime);
     }
 }
