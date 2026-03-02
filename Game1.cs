@@ -21,8 +21,8 @@ public class Game1 : Game
     ];
     private const float TimeStep = 0.01f;
     private const int SubSteps = 4;
-    private const float Zoom = 80f;
     private const float VelocityScale = 0.3f;
+    private readonly Camera _camera = new();
     private static readonly Rectangle ResetButton = new(10, 10, 80, 32);
 
     private readonly InputHandler _inputHandler = new();
@@ -52,7 +52,7 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        var result = _inputHandler.Update(GraphicsDevice.Viewport, _bodies, Zoom, VelocityScale, ResetButton);
+        var result = _inputHandler.Update(GraphicsDevice.Viewport, _bodies, _camera, VelocityScale, ResetButton);
 
         if (result.ShouldExit)
             Exit();
@@ -71,7 +71,7 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        _renderer.Draw(GraphicsDevice, _bodies, _inputHandler, Zoom, ResetButton);
+        _renderer.Draw(GraphicsDevice, _bodies, _inputHandler, _camera, ResetButton);
         base.Draw(gameTime);
     }
 }

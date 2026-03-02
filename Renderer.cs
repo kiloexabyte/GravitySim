@@ -43,7 +43,7 @@ public class Renderer
     }
 
     public void Draw(GraphicsDevice graphicsDevice, List<Body> bodies, InputHandler input,
-        float zoom, Rectangle resetButton)
+        Camera camera, Rectangle resetButton)
     {
         graphicsDevice.Clear(Color.Black);
 
@@ -60,12 +60,12 @@ public class Renderer
             for (var i = 1; i < trailArray.Length; i++)
             {
                 var alpha = (float)i / trailArray.Length * 0.5f;
-                var from = trailArray[i - 1] * zoom + screenCenter;
-                var to = trailArray[i] * zoom + screenCenter;
+                var from = camera.WorldToScreen(trailArray[i - 1], screenCenter);
+                var to = camera.WorldToScreen(trailArray[i], screenCenter);
                 DrawLine(from, to, Color.White * alpha);
             }
 
-            var screenPos = body.Position * zoom + screenCenter;
+            var screenPos = camera.WorldToScreen(body.Position, screenCenter);
             var size = (2f + MathF.Log(body.Mass + 1f) * 2f) / 64f;
 
             _spriteBatch.Draw(

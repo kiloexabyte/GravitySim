@@ -21,13 +21,14 @@ public class InputHandler
     private Vector2 _dragStart;
     private float _spawnMass = 1f;
     private string _massInput = "1";
+    private bool _isPanning;
 
     public bool IsDragging => _isDragging;
     public Vector2 DragStart => _dragStart;
     public float SpawnMass => _spawnMass;
     public string MassInput => _massInput;
 
-    public InputResult Update(Viewport viewport, List<Body> bodies, float zoom, float velocityScale,
+    public InputResult Update(Viewport viewport, List<Body> bodies, Camera camera, float velocityScale,
         Rectangle resetButton)
     {
         var result = new InputResult();
@@ -66,6 +67,34 @@ public class InputHandler
         var mouse = Mouse.GetState();
         var screenCenter = new Vector2(viewport.Width / 2f, viewport.Height / 2f);
 
+        // Scroll wheel zoom toward cursor
+        var scrollDelta = mouse.ScrollWheelValue - _previousMouse.ScrollWheelValue;
+        if (scrollDelta != 0)
+        {
+            var cursorScreen = new Vector2(mouse.X, mouse.Y);
+            var worldBeforeZoom = camera.ScreenToWorld(cursorScreen, screenCenter);
+
+            var factor = scrollDelta > 0 ? 1.1f : 1f / 1.1f;
+            camera.Zoom = Math.Clamp(camera.Zoom * factor, 10f, 1000f);
+
+            var worldAfterZoom = camera.ScreenToWorld(cursorScreen, screenCenter);
+            camera.Position -= worldAfterZoom - worldBeforeZoom;
+        }
+
+        // Middle mouse pan
+        if (mouse.MiddleButton == ButtonState.Pressed && _previousMouse.MiddleButton == ButtonState.Released)
+            _isPanning = true;
+
+        if (_isPanning && mouse.MiddleButton == ButtonState.Pressed)
+        {
+            var mouseDelta = new Vector2(mouse.X - _previousMouse.X, mouse.Y - _previousMouse.Y);
+            camera.Position -= mouseDelta / camera.Zoom;
+        }
+
+        if (mouse.MiddleButton == ButtonState.Released)
+            _isPanning = false;
+
+        // Reset button click
         var clickedReset = false;
         if (mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
             && resetButton.Contains(mouse.X, mouse.Y))
@@ -74,6 +103,7 @@ public class InputHandler
             clickedReset = true;
         }
 
+        // Left-click drag to spawn
         if (!clickedReset
             && mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released
             && mouse.X >= 0 && mouse.X < viewport.Width
@@ -87,8 +117,9 @@ public class InputHandler
         {
             _isDragging = false;
             var dragEnd = new Vector2(mouse.X, mouse.Y);
-            var worldPos = (_dragStart - screenCenter) / zoom;
-            var velocity = (_dragStart - dragEnd) / zoom * velocityScale;
+            var worldPos = camera.ScreenToWorld(_dragStart, screenCenter);
+            var dragEndWorld = camera.ScreenToWorld(dragEnd, screenCenter);
+            var velocity = (worldPos - dragEndWorld) * velocityScale;
             bodies.Add(new Body(worldPos, velocity, _spawnMass, 0.05f));
         }
 
